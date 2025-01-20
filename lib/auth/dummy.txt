@@ -1,0 +1,177 @@
+import 'package:asteron_x/service/getx/controller/user_controller.dart';
+import 'package:asteron_x/service/getx/helper/validator.dart';
+import 'package:asteron_x/utils/colors.dart';
+import 'package:asteron_x/widgets/x_button.dart';
+import 'package:asteron_x/widgets/x_inputfield.dart';
+import 'package:asteron_x/widgets/x_loading.dart';
+import 'package:asteron_x/widgets/x_toast.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  final UserController usercontroller = Get.put(UserController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: bgColor,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 50),
+                //logo
+                const Icon(
+                  Icons.lock_person,
+                  color: secondaryIconColor,
+                  size: 150,
+                ),
+                const SizedBox(height: 10),
+
+                Text(
+                  'Welcome to asteron partner program',
+                  style: TextStyle(
+                    color: textHighlightColor,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 25),
+
+                //email
+                MyTextField(
+                  controller: emailController,
+                  hintText: 'Email Address',
+                  obscureText: false,
+                ),
+
+                const SizedBox(height: 15),
+                //password
+                MyTextField(
+                  controller: passwordController,
+                  hintText: 'Password',
+                  obscureText: true,
+                ),
+                const SizedBox(height: 15),
+
+                Obx(() {
+                  if (usercontroller.isLoading.value) {
+                    return Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: CustomLoadingIndicator(
+                        color: loadingColor,
+                      ),
+                    );
+                  }
+                  return MyButton(
+                    buttonColor: btnBgColor2,
+                    onTap: () {
+                      _handleSubmit(
+                        emailController.text.trim(),
+                        passwordController.text.trim(),
+                      );
+                    },
+                    text: 'Sign In',
+                  );
+                }),
+
+                //forgot passowrd
+                SizedBox(
+                  height: 100,
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Forgot your login details? ',
+                        style: TextStyle(
+                            color: Colors.grey.shade600, fontSize: 12),
+                      ),
+                      Text(
+                        'Get help logging in.',
+                        style: TextStyle(
+                          color: Colors.blue.shade900,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 50,
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          thickness: 0.5,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, right: 8),
+                        child: Text(
+                          'view policy',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          thickness: 0.5,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleSubmit(email, password) {
+    if (Validation.isEmpty(email) || Validation.isEmpty(password)) {
+      customToast('email or password cannot be empty',
+              Icons.question_mark_sharp, errorColor, primaryColor)
+          .show(context);
+      return;
+    }
+
+    if (!Validation.isValidEmail(email)) {
+      customToast('Invalid Email Address', Icons.question_mark_sharp,
+              errorColor, primaryColor)
+          .show(context);
+    }
+
+    if (!Validation.isValidPass(password)) {
+      customToast('Invalid Password', Icons.question_mark_sharp, errorColor,
+              primaryColor)
+          .show(context);
+      return;
+    }
+
+    usercontroller.fetchUser(email, password);
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "569616075772",
+    "project_id": "vehicle-8726b",
+    "storage_bucket": "vehicle-8726b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569616075772:android:2ea090683c2c1ddda48079",
+        "android_client_info": {
+          "package_name": "com.example.asteron_x"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrvxZok4iAfu8UaKcI6B4alpv6Y0Tzf_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569616075772:android:b7005afa0ba71e0da48079",
+        "android_client_info": {
+          "package_name": "com.example.testf"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrvxZok4iAfu8UaKcI6B4alpv6Y0Tzf_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
