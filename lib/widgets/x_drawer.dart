@@ -92,21 +92,10 @@ class _CustomSideBarState extends State<CustomSideBar> {
                     padding: const EdgeInsets.all(5.0),
                     child: MenuItem(
                       icon: Icons.help,
-                      text: 'Help',
+                      text: 'Policies',
                       onTap: () {
                         // Navigate to Help page
-                        Navigator.pushNamed(context, '/help');
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: MenuItem(
-                      icon: Icons.help,
-                      text: 'Privacy Policy',
-                      onTap: () {
-                        // Navigate to Help page
-                        Navigator.pushNamed(context, '/privacy');
+                        Navigator.pushNamed(context, '/policies');
                       },
                     ),
                   ),

@@ -1,3 +1,4 @@
+import 'package:asteron_x/service/getx/controller/UpdateController.dart';
 import 'package:asteron_x/service/getx/controller/leader_board_controller.dart';
 import 'package:asteron_x/service/models/leaderboard_model.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -16,10 +17,12 @@ class Leaderboard extends StatefulWidget {
 class _LeaderboardState extends State<Leaderboard> {
   final LeaderBoardController leaderBoardController =
       Get.put(LeaderBoardController());
+  UpdateController updatecontroller = Get.put(UpdateController());
 
   @override
   void initState() {
     super.initState();
+    updatecontroller.checkLatestVersion();
     leaderBoardController.fetchLeaderBoardData();
   }
 
@@ -72,6 +75,14 @@ class _LeaderboardState extends State<Leaderboard> {
                     color: successColor,
                     icon: CupertinoIcons.money_dollar_circle_fill,
                   ),
+                  SizedBox(height: 16),
+
+                  // CupertinoButton(
+                  //     child: Text('check update'),
+                  //     onPressed: () {
+                  //       updatecontroller.checkLatestVersion();
+                  //     }),
+
                   SizedBox(height: 16),
 
                   // Total Earnings

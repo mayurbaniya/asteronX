@@ -11,6 +11,9 @@ class RemoteData {
   String _privacyObligations = '';
   String _privacyGrevience = '';
 
+  // update related
+  String _updateMessage = '';
+
   RemoteData._internal();
 
   factory RemoteData() {
@@ -46,12 +49,19 @@ class RemoteData {
     _privacyGrevience = grevience;
   }
 
+  void setUpdateMessage(String updateMessage) {
+    _updateMessage = updateMessage;
+  }
+
   // Privacy getters
   String get adminEmail => _adminEmail;
   String get privacyOverview => _privacyOverview;
   String get privacyInformationStored => _privacyInformationStored;
   String get privacyObligations => _privacyObligations;
   String get privacyGrevience => _privacyGrevience;
+
+  // update related
+  String get updateMessage => _updateMessage;
 
   // Existing getters
   String get baseURL => _baseURL;

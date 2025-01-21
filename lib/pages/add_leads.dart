@@ -193,12 +193,12 @@ class _AddLeadsState extends State<AddLeads> {
                               return MyButton(
                                 onTap: () {
                                   _handleSubmit(
-                                    _nameController.text,
-                                    _vehicleController.text,
-                                    _phoneController.text,
-                                    _cityController.text,
-                                    _financeController.text,
-                                    _notesController.text,
+                                    _nameController.text.trim(),
+                                    _vehicleController.text.trim(),
+                                    _phoneController.text.trim(),
+                                    _cityController.text.trim(),
+                                    _financeController.text.trim(),
+                                    _notesController.text.trim(),
                                   );
                                 },
                                 text: 'share lead',

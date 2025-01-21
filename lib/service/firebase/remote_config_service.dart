@@ -26,6 +26,7 @@ class RemoteConfigService {
           _remoteConfig.getString('p_policy_information_stored');
       String privacyObligations =
           _remoteConfig.getString('p_policy_obligations');
+      String updateMessage = _remoteConfig.getString('update_popup_details');
 
       RemoteData().setBaseURL(baseURL);
       RemoteData().setUnderMaintenence(underMn);
@@ -34,6 +35,7 @@ class RemoteConfigService {
       RemoteData().setPrivacyGrevience(privacyGrievance);
       RemoteData().setPrivacyInformationStored(privacyInfoStored);
       RemoteData().setPrivacyObligations(privacyObligations);
+      RemoteData().setUpdateMessage(updateMessage);
     } catch (e) {
       Get.snackbar('error', 'Failed to Fetch Configurations',
           icon: Icon(Icons.error_outline_sharp), colorText: textPrimaryColor);

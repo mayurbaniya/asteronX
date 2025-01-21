@@ -3,6 +3,7 @@ import 'package:asteron_x/pages/leaderboard.dart';
 import 'package:asteron_x/pages/my_leads.dart';
 import 'package:asteron_x/pages/payment_details.dart';
 import 'package:asteron_x/pages/payment_history.dart';
+import 'package:asteron_x/service/getx/controller/UpdateController.dart';
 import 'package:asteron_x/service/getx/controller/user_controller.dart';
 import 'package:asteron_x/utils/colors.dart';
 import 'package:asteron_x/widgets/x_drawer.dart';

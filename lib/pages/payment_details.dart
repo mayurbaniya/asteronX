@@ -33,6 +33,12 @@ class _PaymentDetailsState extends State<PaymentDetails> {
   }
 
   @override
+  void dispose() {
+    upiController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
@@ -175,7 +181,10 @@ class _PaymentDetailsState extends State<PaymentDetails> {
             const SizedBox(height: 20),
             Obx(() {
               if (paymentController.isEditing.value) {
-                upiController.text = payment.data?.upiId ?? '';
+                // Initialize the text controller value only if it hasn't been set yet
+                if (upiController.text.isEmpty) {
+                  upiController.text = payment.data?.upiId ?? '';
+                }
                 return _addOrUpdatePaymentView(context, isUpdating: true);
               } else {
                 return Column(

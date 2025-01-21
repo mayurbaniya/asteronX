@@ -1,4 +1,5 @@
 import 'package:asteron_x/service/firebase/remote_data.dart';
+import 'package:asteron_x/service/getx/controller/UpdateController.dart';
 import 'package:asteron_x/service/getx/controller/payment_controller.dart';
 import 'package:asteron_x/service/getx/controller/user_controller.dart';
 import 'package:asteron_x/utils/colors.dart';
@@ -19,6 +20,7 @@ class _SplashState extends State<Splash> {
   PaymentController paymentController = Get.put(
     PaymentController(),
   );
+  UpdateController updateController = Get.put(UpdateController());
 
   void navigator() async {
     await Future.delayed(Duration(milliseconds: 1500));
@@ -46,6 +48,7 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
+    updateController.checkLatestVersion();
     navigator();
   }
 
