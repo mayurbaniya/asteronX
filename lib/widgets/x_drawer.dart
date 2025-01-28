@@ -1,9 +1,11 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
+import 'dart:ui';
 
 import 'package:asteron_x/service/getx/helper/manage_auth.dart';
 import 'package:asteron_x/utils/colors.dart';
 import 'package:asteron_x/utils/images.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomSideBar extends StatefulWidget {
@@ -16,6 +18,7 @@ class CustomSideBar extends StatefulWidget {
 class _CustomSideBarState extends State<CustomSideBar> {
   String _userName = '';
   String _email = '';
+  String _version = '';
 
   @override
   void initState() {
@@ -25,145 +28,181 @@ class _CustomSideBarState extends State<CustomSideBar> {
 
   Future<void> _loadData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
     setState(() {
       _userName = prefs.getString('name') ?? 'Guest';
       _email = prefs.getString('email') ?? '';
+      _version = packageInfo.version;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      shape: BeveledRectangleBorder(),
-      child: Container(
-        decoration: BoxDecoration(
-            color: bgColor,
-            border: Border(right: BorderSide(color: Colors.grey, width: 1))),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(right: Radius.circular(16)),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemBackground.withOpacity(0.8),
+            borderRadius:
+                const BorderRadius.horizontal(right: Radius.circular(16)),
+          ),
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: _buildMenuItems(),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [_buildVersionInfo(), _buildSignOutButton()],
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 32,
+            backgroundImage: AssetImage(profileIMG),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _userName,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: CupertinoColors.label,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _email,
+            style: TextStyle(
+              fontSize: 14,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItems() {
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        _buildListTile(
+          icon: CupertinoIcons.info_circle,
+          title: 'About',
+          route: '/about',
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Divider(height: 1),
+        ),
+        _buildListTile(
+          icon: CupertinoIcons.mail,
+          title: 'Contact',
+          route: '/contact',
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Divider(height: 1),
+        ),
+        _buildListTile(
+          icon: CupertinoIcons.doc_text,
+          title: 'Policies',
+          route: '/policies',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    required String route,
+  }) {
+    return CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      borderRadius: BorderRadius.circular(12),
+      pressedOpacity: 0.7,
+      onPressed: () => Navigator.pushNamed(context, route),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 24,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 17,
+              color: CupertinoColors.label.resolveFrom(context),
+            ),
+          ),
+          const Spacer(),
+          Icon(
+            CupertinoIcons.chevron_right,
+            size: 16,
+            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSignOutButton() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: CupertinoButton(
+        color: secondaryColor,
+        borderRadius: BorderRadius.circular(12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        onPressed: ManageAuth.logout,
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  UserAccountsDrawerHeader(
-                    currentAccountPicture: CircleAvatar(
-                      child: ClipOval(
-                        child: Image(
-                          width: 100,
-                          height: 100,
-                          image: AssetImage(profileIMG),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    decoration: BoxDecoration(color: bgColor),
-                    accountName: Text(
-                      _userName,
-                      style: TextStyle(color: textPrimaryColor),
-                    ),
-                    accountEmail: Text(
-                      _email,
-                      style: TextStyle(color: textPrimaryColor),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: MenuItem(
-                      icon: Icons.info,
-                      text: 'About',
-                      onTap: () {
-                        // Navigate to About page
-                        Navigator.pushNamed(context, '/about');
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: MenuItem(
-                      icon: Icons.contact_mail,
-                      text: 'Contact',
-                      onTap: () {
-                        // Navigate to Contact page
-                        Navigator.pushNamed(context, '/contact');
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: MenuItem(
-                      icon: Icons.help,
-                      text: 'Policies',
-                      onTap: () {
-                        // Navigate to Help page
-                        Navigator.pushNamed(context, '/policies');
-                      },
-                    ),
-                  ),
-                ],
-              ),
+            Icon(
+              CupertinoIcons.arrow_right_circle,
+              size: 20,
+              color: primaryIconColor,
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'sign out?',
-                    style: TextStyle(color: primaryColor),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.logout_sharp, color: primaryColor),
-                    onPressed: () {
-                      ManageAuth.logout();
-                    },
-                  ),
-                ],
-              ),
-            ),
+            SizedBox(width: 8),
+            Text('Sign Out',
+                style: TextStyle(
+                    fontWeight: FontWeight.w500, color: textPrimaryColor)),
           ],
         ),
       ),
     );
   }
-}
 
-class MenuItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final VoidCallback onTap;
-
-  const MenuItem({
-    super.key,
-    required this.icon,
-    required this.text,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          // borderRadius: BorderRadius.circular(12)
-        ),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 24, right: 16, top: 16, bottom: 16),
-              child: Icon(
-                icon,
-                color: greyColor,
-              ),
-            ),
-            Text(
-              text,
-              style: TextStyle(color: textPrimaryColor),
-            )
-          ],
-        ),
+  Widget _buildVersionInfo() {
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Text(
+        'Version. $_version',
+        style: TextStyle(color: greyColor),
       ),
     );
   }

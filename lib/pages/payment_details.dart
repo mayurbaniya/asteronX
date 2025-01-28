@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:asteron_x/service/firebase/remote_data.dart';
 import 'package:asteron_x/service/getx/helper/validator.dart';
 import 'package:asteron_x/service/models/PaymentModel.dart';
 import 'package:asteron_x/utils/colors.dart';
@@ -117,7 +116,7 @@ class _PaymentDetailsState extends State<PaymentDetails> {
                               null
                           ? DecorationImage(
                               image: NetworkImage(
-                                  "${RemoteData().baseURL}${paymentController.paymentDetails.value!.data!.qrCode}"),
+                                  "${paymentController.paymentDetails.value!.data!.qrCode}"),
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -192,7 +191,7 @@ class _PaymentDetailsState extends State<PaymentDetails> {
                     const SizedBox(height: 10),
                     payment.data?.qrCode != null
                         ? Image.network(
-                            "${RemoteData().baseURL}${payment.data?.qrCode}",
+                            "${payment.data?.qrCode}",
                             height: 200,
                             width: 200,
                             fit: BoxFit.cover,

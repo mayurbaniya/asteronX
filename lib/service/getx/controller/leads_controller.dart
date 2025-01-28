@@ -97,7 +97,8 @@ class LeadsController extends GetxController {
     try {
       int prtID = userController.user.value!.id ?? 0;
 
-      LeadsService.saveLead(prtID, name, vehicle, phone, city, finance, notes);
+      await LeadsService.saveLead(
+          prtID, name, vehicle, phone, city, finance, notes);
 
       fetchAllLeadsForced();
 
