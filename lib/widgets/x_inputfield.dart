@@ -1,16 +1,25 @@
-import 'package:asteron_x/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Themed text field — pulls fill, border, and content padding from
+/// the global InputDecorationTheme. Keeps the same constructor surface as
+/// the original MyTextField so existing screens drop in without changes.
 class MyTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final bool obscureText;
-  final TextInputType? keyboardType; // Optional keyboard type
-  final int? maxLength; // Optional maximum input length
-  final Icon? prefixIcon; // Optional prefix icon
-  final Widget?
-      suffixIcon; // Optional suffix icon (for example, for obscure text)
+  final TextInputType? keyboardType;
+  final int? maxLength;
+  final Icon? prefixIcon;
+  final Widget? suffixIcon;
+  final String? labelText;
+  final int? minLines;
+  final int? maxLines;
+  final bool enabled;
+  final String? errorText;
+  final VoidCallback? onTap;
+  final void Function(String)? onChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   const MyTextField({
     super.key,
@@ -21,54 +30,47 @@ class MyTextField extends StatelessWidget {
     this.maxLength,
     this.prefixIcon,
     this.suffixIcon,
+    this.labelText,
+    this.minLines,
+    this.maxLines,
+    this.enabled = true,
+    this.errorText,
+    this.onTap,
+    this.onChanged,
+    this.inputFormatters,
   });
 
   @override
   Widget build(BuildContext context) {
-    var inputFormatters = <TextInputFormatter>[
+    final List<TextInputFormatter> formatters = [
       FilteringTextInputFormatter.singleLineFormatter,
+      if (keyboardType == TextInputType.number)
+        FilteringTextInputFormatter.digitsOnly,
+      ...?inputFormatters,
     ];
 
-    // Handle specific number input
-    if (keyboardType == TextInputType.number) {
-      inputFormatters.add(FilteringTextInputFormatter.digitsOnly);
-    } else if (keyboardType == TextInputType.text) {
-      // Optional: You can add more specific input formatters for alphanumeric input
-    }
-
-    return SizedBox(
-      height: 55,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          maxLength: maxLength, // Apply maxLength if specified
-          cursorColor: textPrimaryColor,
-          maxLengthEnforcement: maxLength != null
-              ? MaxLengthEnforcement.enforced
-              : MaxLengthEnforcement.none, // Enforce maxLength if set
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: secondaryColor, // Change fill color to match background
-            hintText: hintText,
-            hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-            prefixIcon: prefixIcon ?? null, // Optional prefix icon
-            suffixIcon: suffixIcon ??
-                null, // Optional suffix icon (e.g., eye icon for obscureText)
-            border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(18.0), // Adjusted to match your design
-              borderSide: BorderSide.none,
-            ),
-          ),
-          keyboardType: keyboardType ??
-              TextInputType
-                  .text, // Default to TextInputType.text if not provided
-          inputFormatters: inputFormatters, // Apply input formatters
-        ),
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      maxLength: maxLength,
+      minLines: minLines,
+      maxLines: obscureText ? 1 : (maxLines ?? 1),
+      enabled: enabled,
+      onTap: onTap,
+      onChanged: onChanged,
+      maxLengthEnforcement: maxLength != null
+          ? MaxLengthEnforcement.enforced
+          : MaxLengthEnforcement.none,
+      decoration: InputDecoration(
+        counterText: '',
+        labelText: labelText,
+        hintText: hintText,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
+        errorText: errorText,
       ),
+      keyboardType: keyboardType ?? TextInputType.text,
+      inputFormatters: formatters,
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:asteron_x/service/getx/controller/leads_controller.dart';
 import 'package:asteron_x/service/models/leads_model.dart';
-import 'package:asteron_x/utils/colors.dart';
-import 'package:asteron_x/utils/images.dart';
+import 'package:asteron_x/utils/theme.dart';
 import 'package:asteron_x/widgets/x_loading.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,277 +24,340 @@ class _MyLeadsState extends State<MyLeads> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
-      body: Column(
-        children: [
-          // Add the guide widget
-          _buildGuide(),
+    final tt = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
 
-          // Sorting and pagination controls
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: _LegendStrip(),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Obx(() {
+            final total = leadsController.leads.value?.totalElements ?? 0;
+            return Row(
               children: [
-                Text(
-                  'You shared total ${leadsController.leads.value?.totalElements ?? 0} ${leadsController.leads.value?.totalElements == 1 ? 'Lead' : 'Leads'}',
-                  style: TextStyle(
-                    color: textPrimaryColor,
-                    fontSize: 18,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$total ${total == 1 ? 'lead' : 'leads'}',
+                        style: tt.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'shared by you',
+                        style: tt.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    _showSortOptions(context);
-                  },
-                  icon: Icon(
-                    Icons.filter_alt_rounded,
-                    color: textPrimaryColor,
-                  ),
+                FilledButton.tonalIcon(
+                  onPressed: () => _showSortOptions(context),
+                  icon: const Icon(Icons.sort_rounded, size: 18),
+                  label: const Text('Sort'),
                 ),
               ],
-            ),
-          ),
+            );
+          }),
+        ),
+        Expanded(
+          child: Obx(() {
+            if (leadsController.isLoading.value) {
+              return const Center(child: CustomLoadingIndicator());
+            }
 
-          // Main content
-          Expanded(
-            child: Obx(() {
-              if (leadsController.isLoading.value) {
-                return CustomLoadingIndicator(color: loadingColor);
-              }
+            final leads = leadsController.leads.value;
+            final content = leads?.content;
+            if (content == null || content.isEmpty) {
+              return _EmptyState();
+            }
 
-              if (leadsController.leads.value == null ||
-                  leadsController.leads.value!.content == null ||
-                  leadsController.leads.value!.content!.isEmpty) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.people, size: 80, color: secondaryColor),
-                    SizedBox(height: 20),
-                    Text(
-                      'No Leads Available',
-                      style: TextStyle(fontSize: 18, color: textPrimaryColor),
-                    ),
-                  ],
-                );
-              }
-
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _myLeadsTile(leadsController.leads.value!), // Display leads
-
-                    // Pagination footer
-                    PaginationFooter(
-                      currentPage: leadsController.leads.value?.pageNumber ?? 1,
-                      totalPages: leadsController.leads.value?.totalPages ?? 1,
+            return RefreshIndicator(
+              onRefresh: () async => leadsController.fetchAllLeads(),
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics()),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                itemCount: content.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, i) {
+                  if (i == content.length) {
+                    return PaginationFooter(
+                      currentPage: leads?.pageNumber ?? 1,
+                      totalPages: leads?.totalPages ?? 1,
                       onPreviousPage: leadsController.loadPreviousPage,
                       onNextPage: leadsController.loadNextPage,
-                      isLastPage:
-                          leadsController.leads.value?.lastPage ?? false,
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSortOptions(BuildContext context) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoActionSheet(
-          title: Text('Sort By'),
-          actions: [
-            CupertinoActionSheetAction(
-              onPressed: () {
-                leadsController.updateSortOrder('time', 'desc');
-                Navigator.pop(context); // Close the modal
-              },
-              child: Text('Newer first'),
-            ),
-            CupertinoActionSheetAction(
-              onPressed: () {
-                leadsController.updateSortOrder('time', 'asc');
-                Navigator.pop(context); // Close the modal
-              },
-              child: Text('Older first'),
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('Cancel'),
-            isDestructiveAction: true,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGuide() {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildLegendItem(Icons.fiber_new_rounded, Colors.deepPurple, "NEW"),
-          _buildLegendItem(Icons.update_rounded, Colors.blue, "ONGOING"),
-          _buildLegendItem(Icons.check_circle_rounded, Colors.green, "CLOSED"),
-          _buildLegendItem(Icons.delete_forever_rounded, Colors.red, "DELETED"),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(IconData icon, Color color, String label) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        SizedBox(width: 5),
-        Text(
-          label,
-          style: TextStyle(fontSize: 14, color: textPrimaryColor),
+                      isLastPage: leads?.lastPage ?? false,
+                    );
+                  }
+                  return _LeadCard(lead: content[i]);
+                },
+              ),
+            );
+          }),
         ),
       ],
     );
   }
 
-  Widget _myLeadsTile(MyLeadsModel myLeads) {
-    return GridView.builder(
-      shrinkWrap: true, // Prevent unbounded height error
-      physics: BouncingScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 1,
-        childAspectRatio: 3, // Adjust as needed
+  void _showSortOptions(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: scheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      itemCount: myLeads.content!.length,
-      itemBuilder: (context, index) {
-        Content lead = myLeads.content![index];
-        String title = lead.clientName ?? '-';
-        String vehicle = lead.vehicle ?? '-';
-
-        IconData tagIcon;
-        Color tagColor;
-
-        switch (lead.status) {
-          case 'NEW':
-            tagIcon = Icons.fiber_new_rounded;
-            tagColor = Colors.deepPurple;
-            break;
-          case 'ONGOING':
-            tagIcon = Icons.update_rounded;
-            tagColor = Colors.blue;
-            break;
-          case 'CLOSED':
-            tagIcon = Icons.check_circle_rounded;
-            tagColor = Colors.green;
-            break;
-          case 'DELETED':
-            tagIcon = Icons.delete_forever_rounded;
-            tagColor = Colors.red;
-            break;
-          default:
-            tagIcon = Icons.help_outline_rounded;
-            tagColor = Colors.black;
-        }
-
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Stack(
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Main container
-              GestureDetector(
+              const SizedBox(height: 12),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: const Icon(Icons.arrow_downward_rounded),
+                title: const Text('Newest first'),
                 onTap: () {
-                  Get.toNamed('/details', arguments: lead);
+                  leadsController.updateSortOrder('time', 'desc');
+                  Navigator.pop(context);
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      // Image Container (30% width)
-                      Container(
-                        width: Get.width * 0.3, // 30% of screen width
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(profileIMG),
-                            fit: BoxFit.cover,
-                          ),
-                          borderRadius: BorderRadius.horizontal(
-                            left: Radius.circular(10),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: textPrimaryColor,
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                'Vehicle: $vehicle',
-                                style: TextStyle(
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: 14,
-                                  color: greyColor,
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                'Provider: ${lead.leadProvider?.name ?? '-'}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: greyColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
-              // Tag Icon
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: tagColor,
-                    shape: BoxShape.circle,
-                  ),
-                  padding: EdgeInsets.all(8),
-                  child: Icon(
-                    tagIcon,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
+              ListTile(
+                leading: const Icon(Icons.arrow_upward_rounded),
+                title: const Text('Oldest first'),
+                onTap: () {
+                  leadsController.updateSortOrder('time', 'asc');
+                  Navigator.pop(context);
+                },
               ),
+              const SizedBox(height: 8),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _LegendStrip extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final s = context.semantics;
+    final entries = <(Color, String)>[
+      (s.leadNew, 'New'),
+      (s.leadOngoing, 'Ongoing'),
+      (s.leadClosed, 'Closed'),
+      (s.leadDeleted, 'Deleted'),
+    ];
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: entries
+          .map((e) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration:
+                        BoxDecoration(color: e.$1, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    e.$2,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ))
+          .toList(),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.inbox_outlined,
+                  size: 48, color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No leads yet',
+              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Submit a new lead from the Add tab to get started.',
+              textAlign: TextAlign.center,
+              style: tt.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LeadCard extends StatelessWidget {
+  final Content lead;
+  const _LeadCard({required this.lead});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final s = context.semantics;
+
+    final (statusColor, statusIcon, statusLabel) = switch (lead.status) {
+      'NEW' => (s.leadNew, Icons.fiber_new_rounded, 'New'),
+      'ONGOING' => (s.leadOngoing, Icons.sync_rounded, 'Ongoing'),
+      'CLOSED' => (s.leadClosed, Icons.check_circle_rounded, 'Closed'),
+      'DELETED' => (s.leadDeleted, Icons.delete_outline_rounded, 'Deleted'),
+      _ => (scheme.outline, Icons.help_outline_rounded, lead.status ?? '—'),
+    };
+
+    return Material(
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Get.toNamed('/details', arguments: lead),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.4)),
+          ),
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.person_rounded,
+                    color: scheme.onPrimaryContainer),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            lead.clientName ?? '—',
+                            style: tt.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusChip(
+                          color: statusColor,
+                          icon: statusIcon,
+                          label: statusLabel,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      lead.vehicle ?? '—',
+                      style: tt.bodyMedium
+                          ?.copyWith(color: scheme.onSurfaceVariant),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if ((lead.leadProvider?.name ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.business_rounded,
+                              size: 14, color: scheme.onSurfaceVariant),
+                          const SizedBox(width: 4),
+                          Text(
+                            lead.leadProvider!.name!,
+                            style: tt.bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String label;
+  const _StatusChip(
+      {required this.color, required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'montserrat',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -308,6 +370,7 @@ class PaginationFooter extends StatelessWidget {
   final bool isLastPage;
 
   const PaginationFooter({
+    super.key,
     required this.currentPage,
     required this.totalPages,
     required this.onPreviousPage,
@@ -317,26 +380,24 @@ class PaginationFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.only(top: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Previous Page Icon Button
-          IconButton(
+          IconButton.filledTonal(
             onPressed: currentPage == 0 ? null : onPreviousPage,
-            icon: Icon(Icons.arrow_back_ios,
-                color: currentPage == 0 ? Colors.grey : Colors.black),
+            icon: const Icon(CupertinoIcons.chevron_left, size: 18),
           ),
-
-          // Page Display
-          Text('Page $currentPage / $totalPages'),
-
-          // Next Page Icon Button (disabled if last page)
-          IconButton(
+          Text(
+            'Page ${currentPage + 1} of ${totalPages == 0 ? 1 : totalPages}',
+            style: tt.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          IconButton.filledTonal(
             onPressed: isLastPage ? null : onNextPage,
-            icon: Icon(Icons.arrow_forward_ios,
-                color: isLastPage ? Colors.grey : Colors.black),
+            icon: const Icon(CupertinoIcons.chevron_right, size: 18),
           ),
         ],
       ),

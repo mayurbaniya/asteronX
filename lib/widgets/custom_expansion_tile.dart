@@ -1,87 +1,76 @@
-// ignore_for_file: prefer_const_constructors
-
-import 'package:asteron_x/utils/colors.dart';
 import 'package:flutter/material.dart';
 
+/// Themed expansion tile — adapts to light/dark via ColorScheme.
 class CustomExpansionTile extends StatelessWidget {
   final String title;
   final List<Map<String, dynamic>> data;
+  final bool initiallyExpanded;
 
-  const CustomExpansionTile(
-      {super.key, required this.title, required this.data});
+  const CustomExpansionTile({
+    super.key,
+    required this.title,
+    required this.data,
+    this.initiallyExpanded = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: secondaryColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          initiallyExpanded: title == 'Summary' ? true : false,
-          dense: false,
-          iconColor: textHighlightColor,
-          backgroundColor: Colors
-              .transparent, // Set to transparent to remove internal padding
-          collapsedIconColor: greyColor,
-          textColor: textHighlightColor,
-          collapsedTextColor: greyColor,
-          title: Text(title),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: data
-                    .map((item) =>
-                        _buildRow(item['icon'], item['label'], item['value']))
-                    .toList(),
-              ),
-            ),
-          ],
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          initiallyExpanded: initiallyExpanded || title == 'Summary',
+          iconColor: scheme.primary,
+          collapsedIconColor: scheme.onSurfaceVariant,
+          title: Text(
+            title,
+            style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          children: data
+              .map((item) => _buildRow(
+                    context,
+                    item['icon'] as IconData,
+                    item['label'] as String,
+                    (item['value'] ?? '-').toString(),
+                  ))
+              .toList(),
         ),
       ),
     );
   }
 
-  Widget _buildRow(IconData icon, String label, String value) {
+  Widget _buildRow(BuildContext context, IconData icon, String label, String value) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Icon(
-                size: 14,
-                icon,
-                color: greyColor,
-              ),
-              SizedBox(width: 5),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'montserrat',
-                ),
-              ),
-            ],
-          ),
+          Icon(icon, size: 18, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 12),
           Expanded(
+            child: Text(label,
+                style: tt.bodyMedium
+                    ?.copyWith(color: scheme.onSurfaceVariant)),
+          ),
+          Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: textHighlightColor,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'montserrat',
-              ),
+              style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ],

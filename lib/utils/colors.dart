@@ -1,37 +1,44 @@
 import 'package:flutter/material.dart';
 
-// text related
-const Color textPrimaryColor = Colors.black;
-const Color textSecondaryColor = Colors.white;
-const Color textHighlightColor = Color.fromRGBO(13, 71, 161, 1);
+/// Legacy color constants kept for backwards compatibility with screens that
+/// still reference them directly. New code should pull colors from
+/// `Theme.of(context).colorScheme` / `context.semantics` (see utils/theme.dart).
+///
+/// Values were updated to align with the indigo/neutral palette so screens
+/// that haven't been fully migrated still look consistent.
 
-// accent color
-// const Color primaryColor = const Color.fromARGB(255, 230, 112, 112);
-const Color primaryColor = Colors.black;
-const Color secondaryColor = Color.fromARGB(255, 243, 243, 243);
-const Color mainGridColor = Colors.white;
+// Brand seed (indigo)
+const Color primaryColor = Color(0xFF4F46E5);
+const Color primaryColorDark = Color(0xFF818CF8);
 
-// app bar
-const Color appbarPrimaryColor = Colors.black;
-const Color appbarSecondary = Colors.white;
+// Surfaces (light)
+const Color bgColor = Color(0xFFFFFFFF);
+const Color secondaryColor = Color(0xFFF1F5F9);
+const Color mainGridColor = Color(0xFFFFFFFF);
 
-// icon
-const Color primaryIconColor = Colors.red;
-const Color secondaryIconColor = Colors.black;
+// Text
+const Color textPrimaryColor = Color(0xFF0F172A);
+const Color textSecondaryColor = Color(0xFFFFFFFF);
+const Color textHighlightColor = Color(0xFF4F46E5);
 
-// background colors
-const Color bgColor = Colors.white;
-const Color appBarColor = Colors.black;
-const Color greyColor = Color.fromARGB(255, 117, 117, 117);
+// AppBar (legacy — prefer theme.appBarTheme)
+const Color appbarPrimaryColor = Color(0xFFFFFFFF);
+const Color appbarSecondary = Color(0xFF0F172A);
+const Color appBarColor = Color(0xFFFFFFFF);
 
-// loading related
-const Color loadingColor = Colors.green;
+// Icons
+const Color primaryIconColor = Color(0xFFDC2626);
+const Color secondaryIconColor = Color(0xFF0F172A);
 
-// error, warning, success
-const Color errorColor = Colors.redAccent;
-const Color warningColor = Colors.deepOrange;
-const Color successColor = Colors.green;
+// Greys
+const Color greyColor = Color(0xFF64748B);
 
-// button Color
-const Color btnBgColor2 = Colors.black;
-const Color btnBgColor = Colors.green;
+// Status (semantic)
+const Color loadingColor = Color(0xFF4F46E5);
+const Color errorColor = Color(0xFFDC2626);
+const Color warningColor = Color(0xFFB45309);
+const Color successColor = Color(0xFF15803D);
+
+// Buttons
+const Color btnBgColor = Color(0xFF4F46E5);
+const Color btnBgColor2 = Color(0xFF0F172A);

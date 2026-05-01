@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import 'package:asteron_x/service/getx/helper/api_client.dart';
 import 'package:asteron_x/service/models/leaderboard_model.dart';
 import 'package:asteron_x/utils/constants.dart';
 
@@ -10,10 +9,7 @@ class LeaderboardService {
     final Uri url = Uri.parse('${url_leaderBoard}?leadProviderId=$prtID');
 
     try {
-      final response = await http.get(
-        url,
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await ApiClient.instance.get(url);
 
       print("Response Code: ${response.statusCode}");
       print("Response Body: ${response.body}");

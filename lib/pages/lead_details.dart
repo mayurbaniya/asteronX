@@ -1,304 +1,299 @@
 import 'package:asteron_x/service/models/leads_model.dart';
-import 'package:asteron_x/utils/colors.dart';
-import 'package:asteron_x/utils/images.dart';
+import 'package:asteron_x/utils/theme.dart';
 import 'package:asteron_x/widgets/custom_expansion_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class LeadDetails extends StatefulWidget {
+class LeadDetails extends StatelessWidget {
   const LeadDetails({super.key});
 
   @override
-  State<LeadDetails> createState() => _LeadDetailsState();
-}
-
-class _LeadDetailsState extends State<LeadDetails> {
-  Content lead = Get.arguments;
-
-  @override
   Widget build(BuildContext context) {
-    TextEditingController noteController = TextEditingController();
-    noteController.text = lead.noteForPrt ?? '';
+    final Content lead = Get.arguments as Content;
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final s = context.semantics;
+
+    final (statusColor, statusIcon, statusLabel) = switch (lead.status) {
+      'NEW' => (s.leadNew, Icons.fiber_new_rounded, 'NEW'),
+      'ONGOING' => (s.leadOngoing, Icons.sync_rounded, 'ONGOING'),
+      'CLOSED' => (s.leadClosed, Icons.check_circle_rounded, 'CLOSED'),
+      'DELETED' => (s.leadDeleted, Icons.delete_outline_rounded, 'DELETED'),
+      _ => (scheme.outline, Icons.help_outline_rounded, lead.status ?? '—'),
+    };
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-            onPressed: () {
-              Get.back();
-            },
-            icon: Icon(
-              Icons.arrow_back,
-              color: secondaryColor,
-            )),
-        backgroundColor: lead.status == 'NEW'
-            ? Colors.deepPurple
-            : lead.status == 'CLOSED'
-                ? Colors.green
-                : lead.status == 'ONGOING'
-                    ? Colors.blue
-                    : lead.status == 'DELETED'
-                        ? Colors.redAccent
-                        : Colors.grey,
+          onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
+        title: Text(lead.clientName ?? 'Lead details',
+            style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
       ),
-      backgroundColor: bgColor,
       body: SafeArea(
-          child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image(image: AssetImage(profileIMG)),
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  child: Text(
-                    'lead details',
-                    style: TextStyle(
-                        color: textHighlightColor, fontFamily: 'montserrat'),
-                  ),
-                ),
-              ],
-            ),
-            _FormRow(
-              tileIcon: Icon(Icons.person),
-              tileTitle: 'Customer Name',
-              tileValue: lead.clientName ?? '',
-            ),
-            _FormRow(
-              tileIcon: Icon(Icons.pedal_bike),
-              tileTitle: 'Vehicle',
-              tileValue: lead.vehicle ?? '',
-            ),
-            _FormRow(
-              tileIcon: Icon(Icons.location_pin),
-              tileTitle: 'city',
-              tileValue: lead.city ?? '',
-            ),
-            _FormRow(
-              tileIcon: Icon(CupertinoIcons.money_dollar),
-              tileTitle: 'Finance',
-              tileValue: lead.isFinanceInterested ?? '',
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: Get.height * 0.2,
-                    width: Get.width * 0.45,
-                    decoration: BoxDecoration(color: secondaryColor),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'expected Earning',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: greyColor,
-                              fontFamily: 'montserrat'),
-                        ),
-                        Text(
-                          lead.expectedEarnings ?? '-',
-                          style: TextStyle(
-                              fontSize: 28,
-                              color: CupertinoColors.systemGreen,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'montserrat'),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    height: Get.height * 0.2,
-                    width: Get.width * 0.45,
-                    decoration: BoxDecoration(color: secondaryColor),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Actual Earned',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: greyColor,
-                              fontFamily: 'montserrat'),
-                        ),
-                        Text(
-                          lead.partnersTake ?? '-',
-                          style: TextStyle(
-                              fontSize: 28,
-                              color: CupertinoColors.systemGreen,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'montserrat'),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              height: Get.height * 0.05,
-              width: Get.width * 0.95,
-              decoration: BoxDecoration(color: secondaryColor),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _StatusBanner(
+                color: statusColor,
+                icon: statusIcon,
+                label: statusLabel,
+              ),
+              const SizedBox(height: 16),
+              _Section(
+                title: 'Customer details',
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Text(
-                      'Lead Status', // Default title
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontFamily: 'montserrat',
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Icon(
-                      lead.status == 'NEW'
-                          ? Icons.fiber_new_rounded
-                          : lead.status == 'CLOSED'
-                              ? Icons.check_circle_rounded
-                              : lead.status == 'ONGOING'
-                                  ? Icons.update_rounded
-                                  : lead.status == 'DELETED'
-                                      ? Icons.delete_forever_rounded
-                                      : Icons.info,
-                      size: 30,
-                      color: lead.status == 'NEW'
-                          ? Colors.deepPurple
-                          : lead.status == 'CLOSED'
-                              ? Colors.green
-                              : lead.status == 'ONGOING'
-                                  ? Colors.blue
-                                  : lead.status == 'DELETED'
-                                      ? Colors.redAccent
-                                      : Colors.grey,
-                    ),
-                  )
+                  _InfoRow(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Name',
+                      value: lead.clientName ?? '—'),
+                  _InfoRow(
+                      icon: Icons.two_wheeler_rounded,
+                      label: 'Vehicle',
+                      value: lead.vehicle ?? '—'),
+                  _InfoRow(
+                      icon: Icons.location_on_outlined,
+                      label: 'City',
+                      value: lead.city ?? '—'),
+                  _InfoRow(
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: 'Finance',
+                      value: lead.isFinanceInterested ?? '—'),
                 ],
               ),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-              child: TextField(
-                textAlignVertical: TextAlignVertical.top,
-                style: TextStyle(color: textHighlightColor),
-                minLines: 1, // Minimum number of lines
-                maxLines:
-                    null, // Allow dynamic number of lines based on content
-                enableSuggestions: false,
-                controller: noteController,
-                enabled: false,
-                decoration: InputDecoration(
-                  hintText: 'notes from asteron*',
-                  filled: true,
-                  counterText: '', // Hides the counter text
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical:
-                        10.0, // Adjust vertical padding to give space for text
-                    horizontal: 10.0,
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
-                    borderSide: BorderSide(width: 0.5, color: greyColor),
-                  ),
-                  hintStyle: TextStyle(
-                    color: greyColor, // Change the hint text color
-                  ),
+              const SizedBox(height: 8),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _EarningsTile(
+                        title: 'Expected',
+                        value: lead.expectedEarnings ?? '—',
+                        color: s.info,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _EarningsTile(
+                        title: 'Earned',
+                        value: lead.partnersTake ?? '—',
+                        color: s.success,
+                        emphasize: true,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            CustomExpansionTile(title: 'Payment & transaction', data: [
-              {
-                'icon': CupertinoIcons.money_rubl_circle_fill,
-                'label': 'Payment status',
-                'value': lead.paymentStatus ?? '-'
-              },
-              {
-                'icon': Icons.payment_outlined,
-                'label': 'Transaction ID',
-                'value': lead.txnId ?? '---'
-              },
-              {
-                'icon': Icons.check_circle_rounded,
-                'label': 'Lead closed on',
-                'value': lead.leadClosedOn ?? '-'
-              },
-            ]),
-          ],
+              if ((lead.noteForPrt ?? '').isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _Section(
+                  title: 'Note from Asteron',
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(lead.noteForPrt!,
+                          style: tt.bodyMedium?.copyWith(height: 1.4)),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 8),
+              CustomExpansionTile(
+                title: 'Payment & transaction',
+                initiallyExpanded: lead.status == 'CLOSED',
+                data: [
+                  {
+                    'icon': CupertinoIcons.money_rubl_circle_fill,
+                    'label': 'Payment status',
+                    'value': lead.paymentStatus ?? '—'
+                  },
+                  {
+                    'icon': Icons.confirmation_number_outlined,
+                    'label': 'Transaction ID',
+                    'value': lead.txnId ?? '—'
+                  },
+                  {
+                    'icon': Icons.event_available_rounded,
+                    'label': 'Closed on',
+                    'value': lead.leadClosedOn ?? '—'
+                  },
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }
 
-class _FormRow extends StatelessWidget {
-  const _FormRow({
-    this.tileTitle = '', // Optional: defaults to empty string
-    this.tileValue = '', // Optional: defaults to empty string
-    this.tileIcon =
-        const Icon(Icons.info), // Optional: defaults to an info icon
-    this.iconColor = Colors.black, // Optional: defaults to black
-    this.titleColor = Colors.grey, // Optional: defaults to grey
-    this.valueColor = Colors.black, // Optional: defaults to black
-  });
-
-  final String tileTitle;
-  final String tileValue;
-  final Icon tileIcon;
-  final Color iconColor;
-  final Color titleColor;
-  final Color valueColor;
+class _StatusBanner extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String label;
+  const _StatusBanner(
+      {required this.color, required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return Container(
-      color: secondaryColor,
-      height: Get.height * 0.05,
-      width: Get.width * 0.95,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: tileIcon ??
-                    const Icon(Icons.info), // Use the custom icon or fallback
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Text(
-                  tileTitle.isNotEmpty ? tileTitle : '', // Default title
-                  style: TextStyle(
-                    color: titleColor,
-                    fontFamily: 'montserrat',
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Status',
+                    style: tt.bodySmall?.copyWith(color: color)),
+                Text(
+                  label,
+                  style: tt.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700, color: color),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Section extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+  const _Section({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
             child: Text(
-              tileValue.isNotEmpty ? tileValue : '', // Default value
-              style: TextStyle(
-                color: valueColor,
-                fontFamily: 'montserrat',
-                fontSize: 14,
-              ),
+              title,
+              style: tt.labelLarge
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.4)),
+            ),
+            child: Column(children: children),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 90,
+            child: Text(label,
+                style: tt.bodyMedium
+                    ?.copyWith(color: scheme.onSurfaceVariant)),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EarningsTile extends StatelessWidget {
+  final String title;
+  final String value;
+  final Color color;
+  final bool emphasize;
+  const _EarningsTile({
+    required this.title,
+    required this.value,
+    required this.color,
+    this.emphasize = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: emphasize
+            ? color.withValues(alpha: 0.10)
+            : scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: emphasize
+                ? color.withValues(alpha: 0.5)
+                : scheme.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style: tt.labelMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: tt.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: color,
             ),
           ),
         ],

@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
+/// Themed spinner — defaults to ColorScheme.primary if no color provided.
 class CustomLoadingIndicator extends StatelessWidget {
-  final Color color;
+  final Color? color;
   final double size;
 
   const CustomLoadingIndicator({
     super.key,
-    required this.color,
-    this.size = 20.0,
+    this.color,
+    this.size = 28.0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = color ?? Theme.of(context).colorScheme.primary;
     return Center(
       child: SizedBox(
-          width: size,
-          height: size,
-          child: SpinKitWave(
-            color: color,
-            size: size,
-          )),
+        width: size,
+        height: size,
+        child: SpinKitWave(color: c, size: size),
+      ),
     );
   }
 }

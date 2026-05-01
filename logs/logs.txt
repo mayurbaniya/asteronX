@@ -1,0 +1,9 @@
+I/AssistStructure(27918): Flattened final assist data: 464 bytes, containing 1 windows, 3 views
+D/InputConnectionAdaptor(27918): The input method toggled cursor monitoring on
+I/AssistStructure(27918): Flattened final assist data: 472 bytes, containing 1 windows, 3 views
+D/InputConnectionAdaptor(27918): The input method toggled cursor monitoring on
+D/InputConnectionAdaptor(27918): The input method toggled cursor monitoring off
+D/InputConnectionAdaptor(27918): The input method toggled cursor monitoring on
+D/InputConnectionAdaptor(27918): The input method toggled cursor monitoring off
+I/flutter (27918): Response Code: 200
+I/flutter (27918): Response Body: {"msg":"Welcome Back : Demo","data":{"id":4,"name":"Demo","age":24,"city":null,"cityID":0,"email":"tasxyz123@gmail.com","pinCode":440002,"phone":"9172331098","role":"PRT","status":"ACTIVE","authProvider":null,"created":"2025-01-20T13:09:39.603041","modified":"2026-05-01T12:04:13.616059","accessToken":"eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0YXN4eXoxMjNAZ21haWwuY29tIiwicm9sZXMiOiJQUlQiLCJpYXQiOjE3Nzc2MjM1NzIsImV4cCI6MTc3NzYyNzE3Mn0.Ma-u6OU-agRwVbzG6_SF37Gs5Jz4_u-YsKv3DCvBp-p7qjUj37hrSGOjaIz95WCM6jAcs1zTahAHRXLfqum4zp8KhUiObcAnXj1r1frv5YS7_UxkFOZmxDafl65hX-JYeXdl2x5e5ZxgaRTeFTH9NhhwPGQqF80XOumalh71-dqdiAWiOAlbEUdk0mj7q4IQ_cfqco-zMIOMfjXe56Yp8cli2inUH-CMpqB2wVw_RyRNPFJ_HtJG8t8uIqVjp7jCufAzHpC5nXx_mC1d3FVUeSHGiQpaLJ7B2zndvYnZu3lto5mWQsdN5rUsR5lF2gcQlz5FsMtHYdogPtu8-7ff7g","refreshToken":"40f11391-aff5-44b0-ba59-6b0e1c652531"},"err":null,"status":"SUCCESS"}

@@ -15,5 +15,10 @@ final String url_updatePaymentInfo =
 final String url_getPaymentInfo =
     '${RemoteData().baseURL}/partner/activity/payment-details';
 
+// auth (shared with /user/auth/* — JWT issuer)
+final String url_refreshToken =
+    '${RemoteData().baseURL}/user/auth/refresh-token';
+final String url_logout = '${RemoteData().baseURL}/user/auth/logout/mobile';
+
 // other constants:
 final String paymentDetailsKey = "paymentDetails";

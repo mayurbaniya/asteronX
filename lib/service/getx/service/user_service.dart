@@ -6,6 +6,21 @@ import 'package:asteron_x/utils/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
+  static Future<void> logout(String refreshToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse(url_logout),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'refreshToken': refreshToken}),
+      );
+      if (response.statusCode != 200) {
+        print('Backend logout returned ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error during backend logout: $e');
+    }
+  }
+
   static Future<UserModel?> fetchUser(String email, String password) async {
     // await Future.delayed(Duration(seconds: 2));
     final request = {

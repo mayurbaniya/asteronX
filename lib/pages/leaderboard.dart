@@ -1,10 +1,8 @@
-import 'package:asteron_x/service/getx/controller/UpdateController.dart';
 import 'package:asteron_x/service/getx/controller/leader_board_controller.dart';
-import 'package:asteron_x/service/models/leaderboard_model.dart';
+import 'package:asteron_x/utils/theme.dart';
+import 'package:asteron_x/widgets/x_loading.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:asteron_x/utils/colors.dart';
 import 'package:get/get.dart';
 
 class Leaderboard extends StatefulWidget {
@@ -17,298 +15,326 @@ class Leaderboard extends StatefulWidget {
 class _LeaderboardState extends State<Leaderboard> {
   final LeaderBoardController leaderBoardController =
       Get.put(LeaderBoardController());
-  UpdateController updatecontroller = Get.put(UpdateController());
 
   @override
   void initState() {
     super.initState();
-    updatecontroller.checkLatestVersion();
+    // Update check is fired once at splash; no need to repeat per tab.
     leaderBoardController.fetchLeaderBoardData();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: bgColor,
-      child: SafeArea(
-        child: Obx(
-          () {
-            if (leaderBoardController.isLoading.value) {
-              return const Center(
-                child: CupertinoActivityIndicator(),
-              );
-            }
+    final tt = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final s = context.semantics;
 
-            final data = leaderBoardController.leaderBoardData.value;
+    return Obx(() {
+      if (leaderBoardController.isLoading.value) {
+        return const Center(child: CustomLoadingIndicator());
+      }
+      final data = leaderBoardController.leaderBoardData.value;
+      if (data == null) {
+        return Center(
+          child: Text(
+            'No data available',
+            style:
+                tt.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        );
+      }
 
-            if (data == null) {
-              return const Center(
-                child: Text(
-                  'No data available',
-                  style: TextStyle(fontSize: 18, color: CupertinoColors.label),
+      return RefreshIndicator(
+        onRefresh: () async => leaderBoardController.fetchLeaderBoardData(),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          children: [
+            _SectionLabel('Earnings'),
+            const SizedBox(height: 12),
+            _StatCard(
+              title: 'This month',
+              value: '₹${data.totalEarningsThisMonthDouble.toStringAsFixed(2)}',
+              icon: Icons.trending_up_rounded,
+              color: s.success,
+              emphasis: true,
+            ),
+            const SizedBox(height: 12),
+            _StatCard(
+              title: 'Total earnings',
+              value: '₹${data.totalEarningsDouble.toStringAsFixed(2)}',
+              icon: Icons.account_balance_wallet_rounded,
+              color: s.info,
+            ),
+            const SizedBox(height: 20),
+            _ChartCard(
+              title: 'Lead performance',
+              child: SizedBox(
+                height: 220,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: data.leadsSentThisMonthDouble.toDouble() + 20,
+                    barTouchData: BarTouchData(enabled: true),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (_) => FlLine(
+                        color:
+                            scheme.outlineVariant.withValues(alpha: 0.4),
+                        strokeWidth: 1,
+                      ),
+                    ),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 32,
+                          getTitlesWidget: (v, _) => Text(
+                            v.toInt().toString(),
+                            style: tt.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant),
+                          ),
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false)),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 28,
+                          getTitlesWidget: (v, _) {
+                            const labels = ['Sent', 'Closed', 'Failed'];
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                v.toInt() < labels.length
+                                    ? labels[v.toInt()]
+                                    : '',
+                                style: tt.labelSmall,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barGroups: [
+                      _bar(0, data.leadsSentThisMonthDouble.toDouble(),
+                          s.warning),
+                      _bar(1, data.leadsClosedSuccessfullyDouble.toDouble(),
+                          s.success),
+                      _bar(2, data.failedLeadsDouble.toDouble(),
+                          scheme.error),
+                    ],
+                  ),
                 ),
-              );
-            }
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Earnings Title
-                  const Text(
-                    "Earnings Overview",
-                    style: TextStyle(
-                      fontFamily: 'montserrat',
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: greyColor,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  // Earned This Month
-                  _buildLeaderboardSection(
-                    title: 'Earned This Month',
-                    value:
-                        '₹ ${data.totalEarningsThisMonthDouble.toStringAsFixed(2)}',
-                    color: successColor,
-                    icon: CupertinoIcons.money_dollar_circle_fill,
-                  ),
-                  SizedBox(height: 16),
-
-                  // CupertinoButton(
-                  //     child: Text('check update'),
-                  //     onPressed: () {
-                  //       updatecontroller.checkLatestVersion();
-                  //     }),
-
-                  SizedBox(height: 16),
-
-                  // Total Earnings
-                  _buildLeaderboardSection(
-                    title: 'Total Earnings',
-                    value: '₹ ${data.totalEarningsDouble.toStringAsFixed(2)}',
-                    color: Colors.blue,
-                    icon: CupertinoIcons.money_dollar_circle,
-                  ),
-                  SizedBox(height: 16),
-
-                  // Bar Chart
-                  _buildBarChart(data),
-                  SizedBox(height: 32),
-
-                  // Leads Title
-                  const Text(
-                    "Leads Performance",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  // Leads Sent This Month
-                  _buildLeaderboardSection(
-                    title: 'Leads Sent This Month',
-                    value: data.leadsSentThisMonth?.toString() ?? '0',
-                    color: Colors.orange,
-                    icon: CupertinoIcons.mail_solid,
-                  ),
-                  SizedBox(height: 16),
-
-                  // Total Leads Sent
-                  _buildLeaderboardSection(
-                    title: 'Total Leads Sent',
-                    value: data.totalLeadsSent?.toString() ?? '0',
-                    color: Colors.purple,
-                    icon: CupertinoIcons.mail,
-                  ),
-                  SizedBox(height: 16),
-
-                  // Leads Closed Successfully
-                  _buildLeaderboardSection(
-                    title: 'Leads Closed Successfully',
-                    value: data.leadsClosedSuccessfully?.toString() ?? '0',
-                    color: Colors.green,
-                    icon: CupertinoIcons.checkmark_seal_fill,
-                  ),
-                  SizedBox(height: 16),
-
-                  // Failed Leads
-                  _buildLeaderboardSection(
-                    title: 'Failed Leads',
-                    value: data.failedLeads?.toString() ?? '0',
-                    color: Colors.red,
-                    icon: CupertinoIcons.xmark_seal_fill,
-                  ),
-                  SizedBox(height: 16),
-
-                  // Pie Chart
-                  _buildRadarChart(data),
-                ],
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 24),
+            _SectionLabel('Lead breakdown'),
+            const SizedBox(height: 12),
+            _StatCard(
+              title: 'Sent this month',
+              value: data.leadsSentThisMonth?.toString() ?? '0',
+              icon: Icons.send_rounded,
+              color: s.warning,
+            ),
+            const SizedBox(height: 12),
+            _StatCard(
+              title: 'Total sent',
+              value: data.totalLeadsSent?.toString() ?? '0',
+              icon: Icons.outbox_rounded,
+              color: scheme.primary,
+            ),
+            const SizedBox(height: 12),
+            _StatCard(
+              title: 'Closed successfully',
+              value: data.leadsClosedSuccessfully?.toString() ?? '0',
+              icon: Icons.check_circle_rounded,
+              color: s.success,
+            ),
+            const SizedBox(height: 12),
+            _StatCard(
+              title: 'Failed',
+              value: data.failedLeads?.toString() ?? '0',
+              icon: Icons.cancel_rounded,
+              color: scheme.error,
+            ),
+            const SizedBox(height: 20),
+            _ChartCard(
+              title: 'Distribution',
+              child: SizedBox(
+                height: 240,
+                child: RadarChart(
+                  RadarChartData(
+                    dataSets: [
+                      RadarDataSet(
+                        dataEntries: [
+                          RadarEntry(
+                              value: data.totalEarningsThisMonthDouble),
+                          RadarEntry(value: data.totalEarningsDouble),
+                          RadarEntry(
+                              value:
+                                  data.leadsSentThisMonthDouble.toDouble()),
+                          RadarEntry(
+                              value: data.leadsClosedSuccessfullyDouble
+                                  .toDouble()),
+                          RadarEntry(value: data.failedLeadsDouble.toDouble()),
+                        ],
+                        fillColor: scheme.primary.withValues(alpha: 0.25),
+                        borderColor: scheme.primary,
+                      ),
+                    ],
+                    radarBorderData:
+                        BorderSide(color: scheme.outlineVariant),
+                    gridBorderData:
+                        BorderSide(color: scheme.outlineVariant, width: 1),
+                    tickBorderData: BorderSide(
+                        color: scheme.outlineVariant
+                            .withValues(alpha: 0.5)),
+                    radarBackgroundColor: Colors.transparent,
+                    titleTextStyle:
+                        tt.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
+      );
+    });
+  }
+
+  BarChartGroupData _bar(int x, double y, Color color) {
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: y,
+          color: color,
+          width: 22,
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(6)),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        text.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              letterSpacing: 1,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
+}
 
-  Widget _buildLeaderboardSection({
-    required String title,
-    required String value,
-    required Color color,
-    required IconData icon,
-  }) {
+class _StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool emphasis;
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+    this.emphasis = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground,
-        borderRadius: BorderRadius.circular(10),
+        color: emphasis
+            ? color.withValues(alpha: 0.08)
+            : scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: emphasis
+              ? color.withValues(alpha: 0.3)
+              : scheme.outlineVariant.withValues(alpha: 0.4),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 28),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: CupertinoColors.label,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: tt.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant)),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: tt.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800, color: color),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildRadarChart(LeaderBoardModel data) {
+class _ChartCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+  const _ChartCard({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     return Container(
-      height: 300,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground,
-        borderRadius: BorderRadius.circular(10),
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
       ),
-      child: RadarChart(
-        RadarChartData(
-          dataSets: [
-            RadarDataSet(
-              dataEntries: [
-                RadarEntry(value: data.totalEarningsThisMonthDouble),
-                RadarEntry(value: data.totalEarningsDouble),
-                RadarEntry(value: (data.leadsSentThisMonthDouble).toDouble()),
-                RadarEntry(
-                    value: (data.leadsClosedSuccessfullyDouble).toDouble()),
-                RadarEntry(value: (data.failedLeadsDouble).toDouble()),
-              ],
-              fillColor: Colors.blue.withOpacity(0.3),
-              borderColor: Colors.blue,
-            ),
-          ],
-          radarBorderData: BorderSide(color: Colors.grey),
-          radarBackgroundColor: Colors.transparent,
-          titleTextStyle: TextStyle(color: Colors.grey),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBarChart(LeaderBoardModel data) {
-    return Container(
-      height: 300,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: (data.leadsSentThisMonthDouble.toDouble()) + 20,
-          barTouchData: BarTouchData(enabled: true),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 28,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    value.toInt().toString(),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: CupertinoColors.label,
-                    ),
-                  );
-                },
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  switch (value.toInt()) {
-                    case 0:
-                      return const Text('Leads Sent');
-                    case 1:
-                      return const Text('Closed');
-                    case 2:
-                      return const Text('Failed');
-                    default:
-                      return const Text('');
-                  }
-                },
-              ),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
-          borderData: FlBorderData(show: false),
-          barGroups: [
-            BarChartGroupData(
-              x: 0,
-              barRods: [
-                BarChartRodData(
-                    toY: (data.leadsSentThisMonthDouble).toDouble(),
-                    color: Colors.orange),
-              ],
-            ),
-            BarChartGroupData(
-              x: 1,
-              barRods: [
-                BarChartRodData(
-                    toY: (data.leadsClosedSuccessfullyDouble).toDouble(),
-                    color: Colors.green),
-              ],
-            ),
-            BarChartGroupData(
-              x: 2,
-              barRods: [
-                BarChartRodData(
-                    toY: (data.failedLeadsDouble).toDouble(),
-                    color: Colors.red),
-              ],
-            ),
-          ],
-        ),
+          const SizedBox(height: 12),
+          child,
+        ],
       ),
     );
   }

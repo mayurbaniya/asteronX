@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:asteron_x/service/getx/controller/leads_controller.dart';
+import 'package:asteron_x/service/getx/helper/api_client.dart';
 import 'package:asteron_x/service/models/leads_model.dart';
 import 'package:asteron_x/utils/constants.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 
 class LeadsService {
   LeadsController leadsController = Get.put(LeadsController());
@@ -15,10 +15,7 @@ class LeadsService {
       final Uri url = Uri.parse(
           '${url_allLeads}?partnerID=$prtID&page=$page&size=$size&sortBy=$sortBy&sortDir=$sortDir');
 
-      final response = await http.get(
-        url,
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await ApiClient.instance.get(url);
 
       print("Response Code: ${response.statusCode}");
       print("Response Body: ${response.body}");
@@ -72,11 +69,10 @@ class LeadsService {
     final Uri url = Uri.parse(url_addNewLead);
 
     try {
-      // Perform the HTTP POST request
-      final response = await http.post(
+      // Perform the HTTP POST request via ApiClient (auth header + 401 retry).
+      final response = await ApiClient.instance.post(
         url,
-        body: json.encode(request), // Convert the request map to a JSON string
-        headers: {'Content-Type': 'application/json'},
+        body: json.encode(request),
       );
 
       // Check the HTTP response status code

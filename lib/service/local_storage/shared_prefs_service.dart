@@ -17,6 +17,8 @@ class SharedPrefService {
   static const String _cityKey = 'city';
   static const String _createdKey = 'created';
   static const String _ageKey = 'age';
+  static const String _accessTokenKey = 'accessToken';
+  static const String _refreshTokenKey = 'refreshToken';
 
   static const String _leaderboardKey = 'leaderboardData';
   static const String _leaderboardTimestampKey = 'leaderboardTimestamp';
@@ -34,7 +36,32 @@ class SharedPrefService {
     await prefs.setString(_createdKey, user.created.toString());
     await prefs.setInt(_ageKey, user.age ?? 0);
 
+    if (user.accessToken != null) {
+      await prefs.setString(_accessTokenKey, user.accessToken!);
+    }
+    if (user.refreshToken != null) {
+      await prefs.setString(_refreshTokenKey, user.refreshToken!);
+    }
+
     print('User data saved to SharedPreferences');
+  }
+
+  // Token accessors
+  static Future<String?> getAccessToken() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_accessTokenKey);
+  }
+
+  static Future<String?> getRefreshToken() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_refreshTokenKey);
+  }
+
+  static Future<void> saveTokens(
+      String accessToken, String refreshToken) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_accessTokenKey, accessToken);
+    await prefs.setString(_refreshTokenKey, refreshToken);
   }
 
   // Remove user data (on logout)
@@ -51,6 +78,8 @@ class SharedPrefService {
     await prefs.remove(_cityKey);
     await prefs.remove(_createdKey);
     await prefs.remove(_ageKey);
+    await prefs.remove(_accessTokenKey);
+    await prefs.remove(_refreshTokenKey);
     await prefs.remove(paymentDetailsKey);
     // Clear leaderboard data
     await prefs.remove(_leaderboardKey);

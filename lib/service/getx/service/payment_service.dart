@@ -2,48 +2,42 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:asteron_x/service/getx/helper/api_client.dart';
 import 'package:asteron_x/service/models/PaymentModel.dart';
 import 'package:asteron_x/utils/constants.dart';
 import 'package:http_parser/http_parser.dart';
 
 class PaymentService {
+  static MediaType _resolveMediaType(File file) {
+    final String fileExtension = file.path.split('.').last.toLowerCase();
+    if (fileExtension == 'jpg' || fileExtension == 'jpeg') {
+      return MediaType('image', 'jpeg');
+    } else if (fileExtension == 'png') {
+      return MediaType('image', 'png');
+    } else {
+      throw Exception(
+          'Unsupported file format. Only JPG, JPEG, and PNG are allowed.');
+    }
+  }
+
   static Future<PaymentModel?> addPaymentDetails(
       int partnerID, String upiID, File qrCode) async {
     final Uri url = Uri.parse(url_addPaymentInfo);
+    final MediaType mediaType = _resolveMediaType(qrCode);
 
     try {
-      final request = http.MultipartRequest('POST', url);
-
-      // Add fields
-      request.fields['partnerID'] = partnerID.toString();
-      request.fields['upiID'] = upiID;
-
-      // Get file extension
-      String fileExtension = qrCode.path.split('.').last.toLowerCase();
-
-      // Determine the content type
-      MediaType? mediaType;
-      if (fileExtension == 'jpg' || fileExtension == 'jpeg') {
-        mediaType = MediaType('image', 'jpeg');
-      } else if (fileExtension == 'png') {
-        mediaType = MediaType('image', 'png');
-      } else {
-        throw Exception(
-            'Unsupported file format. Only JPG, JPEG, and PNG are allowed.');
-      }
-
-      // Add file
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file', // Key as expected by the server
-          qrCode.path,
+      final response = await ApiClient.instance.sendMultipart(() {
+        final req = http.MultipartRequest('POST', url);
+        req.fields['partnerID'] = partnerID.toString();
+        req.fields['upiID'] = upiID;
+        req.files.add(http.MultipartFile.fromBytes(
+          'file',
+          qrCode.readAsBytesSync(),
+          filename: qrCode.path.split(Platform.pathSeparator).last,
           contentType: mediaType,
-        ),
-      );
-
-      // Send request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+        ));
+        return req;
+      });
 
       print("Response Code: ${response.statusCode}");
       print("Response Body: ${response.body}");
@@ -71,40 +65,21 @@ class PaymentService {
   static Future<PaymentModel?> updatePaymentDetails(
       int partnerID, String upiID, File qrCode) async {
     final Uri url = Uri.parse(url_updatePaymentInfo);
+    final MediaType mediaType = _resolveMediaType(qrCode);
 
     try {
-      final request = http.MultipartRequest('PUT', url);
-
-      // Add fields
-      request.fields['partnerID'] = partnerID.toString();
-      request.fields['upiID'] = upiID;
-
-      // Get file extension
-      String fileExtension = qrCode.path.split('.').last.toLowerCase();
-
-      // Determine the content type
-      MediaType? mediaType;
-      if (fileExtension == 'jpg' || fileExtension == 'jpeg') {
-        mediaType = MediaType('image', 'jpeg');
-      } else if (fileExtension == 'png') {
-        mediaType = MediaType('image', 'png');
-      } else {
-        throw Exception(
-            'Unsupported file format. Only JPG, JPEG, and PNG are allowed.');
-      }
-
-      // Add file
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file', // Key as expected by the server
-          qrCode.path,
+      final response = await ApiClient.instance.sendMultipart(() {
+        final req = http.MultipartRequest('PUT', url);
+        req.fields['partnerID'] = partnerID.toString();
+        req.fields['upiID'] = upiID;
+        req.files.add(http.MultipartFile.fromBytes(
+          'file',
+          qrCode.readAsBytesSync(),
+          filename: qrCode.path.split(Platform.pathSeparator).last,
           contentType: mediaType,
-        ),
-      );
-
-      // Send request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+        ));
+        return req;
+      });
 
       print("Response Code: ${response.statusCode}");
       print("Response Body: ${response.body}");
@@ -133,10 +108,7 @@ class PaymentService {
     final Uri url = Uri.parse('${url_getPaymentInfo}?partnerID=$partnerID');
 
     try {
-      final response = await http.get(
-        url,
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await ApiClient.instance.get(url);
 
       print("Response Code: ${response.statusCode}");
       print("Response Body: ${response.body}");

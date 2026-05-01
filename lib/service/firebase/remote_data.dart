@@ -4,6 +4,7 @@ class RemoteData {
   String _baseURL = '';
   String _underMaintenence = '';
   String _adminEmail = '';
+  String _adminPhone = '';
 
   // privacy related
   String _privacyOverview = '';
@@ -11,8 +12,11 @@ class RemoteData {
   String _privacyObligations = '';
   String _privacyGrevience = '';
 
-  // update related
+  // update related — partner-app version + download URL come from
+  // Remote Config so we don't have to ship a new build to bump them.
   String _updateMessage = '';
+  String _partnerAppVersion = '';
+  String _partnerAppDownloadUrl = '';
 
   RemoteData._internal();
 
@@ -31,6 +35,10 @@ class RemoteData {
   // Privacy setters
   void setAdminEmail(String email) {
     _adminEmail = email;
+  }
+
+  void setAdminPhone(String phone) {
+    _adminPhone = phone;
   }
 
   void setPrivacyOverview(String overview) {
@@ -53,8 +61,17 @@ class RemoteData {
     _updateMessage = updateMessage;
   }
 
+  void setPartnerAppVersion(String version) {
+    _partnerAppVersion = version;
+  }
+
+  void setPartnerAppDownloadUrl(String url) {
+    _partnerAppDownloadUrl = url;
+  }
+
   // Privacy getters
   String get adminEmail => _adminEmail;
+  String get adminPhone => _adminPhone;
   String get privacyOverview => _privacyOverview;
   String get privacyInformationStored => _privacyInformationStored;
   String get privacyObligations => _privacyObligations;
@@ -62,6 +79,8 @@ class RemoteData {
 
   // update related
   String get updateMessage => _updateMessage;
+  String get partnerAppVersion => _partnerAppVersion;
+  String get partnerAppDownloadUrl => _partnerAppDownloadUrl;
 
   // Existing getters
   String get baseURL => _baseURL;
