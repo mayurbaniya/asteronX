@@ -1,6 +1,17 @@
-// To parse this JSON data, do
+// Lead list / detail model. Backed by the new LeadResponse / LeadPageResponse
+// DTOs on the backend (post V1__cleanup_external_leads_and_exchange.sql).
 //
-//     final myLeadsModel = myLeadsModelFromJson(jsonString);
+// Schema changes vs. the old shape this client was written for:
+//   * `notes` -> `partnerSubmittedNote`
+//   * `noteForPrt` -> `noteVisibleToPartner`
+//   * `leadNote` is admin-only and not exposed in the response
+//   * `isFinanceInterested` -> `financeInterest` (enum: YES / NO / UNSURE)
+//   * `priority` is now an enum string (LOW / MEDIUM / HIGH), not int
+//   * `status` enum: NEW / IN_PROGRESS / CLOSED / CANCELLED (was ONGOING / DELETED)
+//   * money fields are JSON numbers now, decoded as `num`
+//   * top-level `time` removed; use `created`
+//   * `deleted` flag removed (status == CANCELLED replaces it)
+//   * `takePaid` int -> `takePaidAmount` numeric
 
 import 'dart:convert';
 
@@ -52,167 +63,163 @@ class MyLeadsModel {
 
 class Content {
   int? id;
-  LeadProvider? leadProvider;
+  int? leadProviderID;
+  String? leadProviderName;
   String? clientName;
   String? vehicle;
   String? phoneNumber;
+  String? altPhoneNumber;
   String? city;
-  String? isFinanceInterested;
-  bool? interested;
-  DateTime? time;
-  dynamic updated;
-  dynamic expectedEarnings;
-  dynamic partnersTake;
-  dynamic leadNote;
-  dynamic noteForPrt;
-  int? takePaid;
-  dynamic txnId;
-  dynamic leadClosedOn;
-  bool? deleted;
-  dynamic paymentStatus;
+
+  /// "YES" / "NO" / "UNSURE"
+  String? financeInterest;
+
+  /// "NEW" / "IN_PROGRESS" / "CLOSED" / "CANCELLED"
   String? status;
-  bool? didAdminCalled;
-  bool? didUserAnswered;
-  dynamic lastCallTime;
-  String? notes;
-  int? priority;
+
+  /// "LOW" / "MEDIUM" / "HIGH"
+  String? priority;
+
+  /// "PENDING" / "PAID" / "FAILED"
+  String? paymentStatus;
+
+  bool? interested;
+  DateTime? nextFollowUp;
+  DateTime? lastCallTime;
+  DateTime? leadClosedOn;
+
+  num? expectedEarnings;
+  num? partnersTake;
+  num? earned;
+  num? takePaidAmount;
+  String? txnId;
+
+  String? partnerSubmittedNote;
+  String? noteVisibleToPartner;
+
+  DateTime? created;
+  DateTime? updated;
 
   Content({
     this.id,
-    this.leadProvider,
+    this.leadProviderID,
+    this.leadProviderName,
     this.clientName,
     this.vehicle,
     this.phoneNumber,
+    this.altPhoneNumber,
     this.city,
-    this.isFinanceInterested,
+    this.financeInterest,
+    this.status,
+    this.priority,
+    this.paymentStatus,
     this.interested,
-    this.time,
-    this.updated,
+    this.nextFollowUp,
+    this.lastCallTime,
+    this.leadClosedOn,
     this.expectedEarnings,
     this.partnersTake,
-    this.leadNote,
-    this.noteForPrt,
-    this.takePaid,
+    this.earned,
+    this.takePaidAmount,
     this.txnId,
-    this.leadClosedOn,
-    this.deleted,
-    this.paymentStatus,
-    this.status,
-    this.didAdminCalled,
-    this.didUserAnswered,
-    this.lastCallTime,
-    this.notes,
-    this.priority,
+    this.partnerSubmittedNote,
+    this.noteVisibleToPartner,
+    this.created,
+    this.updated,
   });
+
+  /// Convenience: server stores partner provider as flat fields in the
+  /// new response, but UI code wants a `LeadProvider` object. Build one
+  /// on demand for callers that still want it.
+  LeadProvider? get leadProvider => leadProviderID == null
+      ? null
+      : LeadProvider(id: leadProviderID, name: leadProviderName);
+
+  static DateTime? _parseDate(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is String && raw.isEmpty) return null;
+    return DateTime.tryParse(raw.toString());
+  }
+
+  static num? _parseNum(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is num) return raw;
+    return num.tryParse(raw.toString());
+  }
 
   factory Content.fromJson(Map<String, dynamic> json) => Content(
         id: json["id"],
-        leadProvider: json["leadProvider"] == null
-            ? null
-            : LeadProvider.fromJson(json["leadProvider"]),
+        leadProviderID: json["leadProviderID"],
+        leadProviderName: json["leadProviderName"],
         clientName: json["clientName"],
         vehicle: json["vehicle"],
         phoneNumber: json["phoneNumber"],
+        altPhoneNumber: json["altPhoneNumber"],
         city: json["city"],
-        isFinanceInterested: json["isFinanceInterested"],
-        interested: json["interested"],
-        time: json["time"] == null ? null : DateTime.parse(json["time"]),
-        updated: json["updated"],
-        expectedEarnings: json["expectedEarnings"],
-        partnersTake: json["partnersTake"],
-        leadNote: json["leadNote"],
-        noteForPrt: json["noteForPrt"],
-        takePaid: json["takePaid"],
-        txnId: json["txnID"],
-        leadClosedOn: json["leadClosedOn"],
-        deleted: json["deleted"],
-        paymentStatus: json["paymentStatus"],
+        financeInterest: json["financeInterest"],
         status: json["status"],
-        didAdminCalled: json["didAdminCalled"],
-        didUserAnswered: json["didUserAnswered"],
-        lastCallTime: json["lastCallTime"],
-        notes: json["notes"],
         priority: json["priority"],
+        paymentStatus: json["paymentStatus"],
+        interested: json["interested"],
+        nextFollowUp: _parseDate(json["nextFollowUp"]),
+        lastCallTime: _parseDate(json["lastCallTime"]),
+        leadClosedOn: _parseDate(json["leadClosedOn"]),
+        expectedEarnings: _parseNum(json["expectedEarnings"]),
+        partnersTake: _parseNum(json["partnersTake"]),
+        earned: _parseNum(json["earned"]),
+        takePaidAmount: _parseNum(json["takePaidAmount"]),
+        txnId: json["txnID"],
+        partnerSubmittedNote: json["partnerSubmittedNote"],
+        noteVisibleToPartner: json["noteVisibleToPartner"],
+        created: _parseDate(json["created"]),
+        updated: _parseDate(json["updated"]),
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
-        "leadProvider": leadProvider?.toJson(),
+        "leadProviderID": leadProviderID,
+        "leadProviderName": leadProviderName,
         "clientName": clientName,
         "vehicle": vehicle,
         "phoneNumber": phoneNumber,
+        "altPhoneNumber": altPhoneNumber,
         "city": city,
-        "isFinanceInterested": isFinanceInterested,
+        "financeInterest": financeInterest,
+        "status": status,
+        "priority": priority,
+        "paymentStatus": paymentStatus,
         "interested": interested,
-        "time": time?.toIso8601String(),
-        "updated": updated,
+        "nextFollowUp": nextFollowUp?.toIso8601String(),
+        "lastCallTime": lastCallTime?.toIso8601String(),
+        "leadClosedOn": leadClosedOn?.toIso8601String(),
         "expectedEarnings": expectedEarnings,
         "partnersTake": partnersTake,
-        "leadNote": leadNote,
-        "noteForPrt": noteForPrt,
-        "takePaid": takePaid,
+        "earned": earned,
+        "takePaidAmount": takePaidAmount,
         "txnID": txnId,
-        "leadClosedOn": leadClosedOn,
-        "deleted": deleted,
-        "paymentStatus": paymentStatus,
-        "status": status,
-        "didAdminCalled": didAdminCalled,
-        "didUserAnswered": didUserAnswered,
-        "lastCallTime": lastCallTime,
-        "notes": notes,
-        "priority": priority,
+        "partnerSubmittedNote": partnerSubmittedNote,
+        "noteVisibleToPartner": noteVisibleToPartner,
+        "created": created?.toIso8601String(),
+        "updated": updated?.toIso8601String(),
       };
 }
 
+/// Slim partner-provider projection. The LeadResponse now ships flat
+/// `leadProviderID` + `leadProviderName`, but legacy UI still references
+/// `lead.leadProvider?.name` so we expose the same shape via getter.
 class LeadProvider {
   int? id;
   String? name;
-  int? age;
-  String? email;
-  int? pinCode;
-  String? phone;
-  String? role;
-  String? status;
-  DateTime? created;
-  dynamic modified;
 
-  LeadProvider({
-    this.id,
-    this.name,
-    this.age,
-    this.email,
-    this.pinCode,
-    this.phone,
-    this.role,
-    this.status,
-    this.created,
-    this.modified,
-  });
+  LeadProvider({this.id, this.name});
 
   factory LeadProvider.fromJson(Map<String, dynamic> json) => LeadProvider(
         id: json["id"],
         name: json["name"],
-        age: json["age"],
-        email: json["email"],
-        pinCode: json["pinCode"],
-        phone: json["phone"],
-        role: json["role"],
-        status: json["status"],
-        created:
-            json["created"] == null ? null : DateTime.parse(json["created"]),
-        modified: json["modified"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
-        "age": age,
-        "email": email,
-        "pinCode": pinCode,
-        "phone": phone,
-        "role": role,
-        "status": status,
-        "created": created?.toIso8601String(),
-        "modified": modified,
       };
 }

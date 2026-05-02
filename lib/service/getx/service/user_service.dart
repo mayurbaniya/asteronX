@@ -22,13 +22,15 @@ class UserService {
   }
 
   static Future<UserModel?> fetchUser(String email, String password) async {
-    // await Future.delayed(Duration(seconds: 2));
     final request = {
       "email": email,
       "password": password,
     };
 
     final Uri url = Uri.parse(url_signIn);
+
+    print('>>> SIGN-IN POST: $url');
+    print('>>> SIGN-IN BODY: { "email": "$email", "password": "***" }');
 
     try {
       final response = await http.post(
@@ -37,8 +39,8 @@ class UserService {
         body: json.encode(request),
       );
 
-      print("Response Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      print("<<< Response Code: ${response.statusCode}");
+      print("<<< Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseBody = json.decode(response.body);

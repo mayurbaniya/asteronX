@@ -55,16 +55,24 @@ class LeadsService {
     String finance,
     String notes,
   ) async {
-    // Prepare the request payload
+    // Backend now accepts the LeadCreateRequest shape (post V1 cleanup):
+    //  - financeInterest is the YES/NO/UNSURE enum
+    //  - partnerSubmittedNote replaces the old `notes`
+    final String financeEnum = switch (finance.trim().toLowerCase()) {
+      'yes' || 'y' || 'true' => 'YES',
+      'no' || 'n' || 'false' => 'NO',
+      _ => 'UNSURE',
+    };
+
     final request = {
-      "leadProviderID": prtID, // Include prtID in the request
+      "leadProviderID": prtID,
       "clientName": name,
       "vehicle": vehicle,
       "phoneNumber": phone,
       "altPhoneNumber": "",
       "city": city,
-      "isFinanceInterested": finance,
-      "notes": notes,
+      "financeInterest": financeEnum,
+      "partnerSubmittedNote": notes,
     };
     final Uri url = Uri.parse(url_addNewLead);
 

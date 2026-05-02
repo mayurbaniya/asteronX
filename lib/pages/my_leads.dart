@@ -239,9 +239,9 @@ class _LeadCard extends StatelessWidget {
 
     final (statusColor, statusIcon, statusLabel) = switch (lead.status) {
       'NEW' => (s.leadNew, Icons.fiber_new_rounded, 'New'),
-      'ONGOING' => (s.leadOngoing, Icons.sync_rounded, 'Ongoing'),
+      'IN_PROGRESS' => (s.leadOngoing, Icons.sync_rounded, 'Ongoing'),
       'CLOSED' => (s.leadClosed, Icons.check_circle_rounded, 'Closed'),
-      'DELETED' => (s.leadDeleted, Icons.delete_outline_rounded, 'Deleted'),
+      'CANCELLED' => (s.leadDeleted, Icons.delete_outline_rounded, 'Cancelled'),
       _ => (scheme.outline, Icons.help_outline_rounded, lead.status ?? '—'),
     };
 

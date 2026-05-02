@@ -21,7 +21,12 @@ class RemoteConfigService {
 
       // Pick the env-scoped values: backend URL, target version, download
       // URL — all keyed by EnvironmentConfig so test/uat/prod can diverge.
-      String baseURL = _remoteConfig.getString(EnvironmentConfig.baseUrlKey);
+      // Strip any trailing '/' so callers that prepend '/path' don't produce
+      // '//path' (Spring Security's matcher treats // as a different route
+      // and falls through to authenticated() — silently 401s the login).
+      String baseURL = _remoteConfig
+          .getString(EnvironmentConfig.baseUrlKey)
+          .replaceAll(RegExp(r'/+$'), '');
       String underMn = _remoteConfig.getString('maintenance_x');
       String adminMail = _remoteConfig.getString('admin_email');
       String adminPhone = _remoteConfig.getString('admin_phone');
@@ -29,8 +34,17 @@ class RemoteConfigService {
           _remoteConfig.getString(EnvironmentConfig.versionKey);
       String partnerAppDownloadUrl =
           _remoteConfig.getString(EnvironmentConfig.downloadUrlKey);
-      print('fetched remote data : '
-          '$baseURL $underMn $adminMail $adminPhone $partnerAppVersion');
+      print('==================== REMOTE CONFIG ====================');
+      print('  env             : ${EnvironmentConfig.environmentName}');
+      print('  base URL key    : ${EnvironmentConfig.baseUrlKey}');
+      print('  resolved URL    : ${baseURL.isEmpty ? "(EMPTY)" : baseURL}');
+      print('  version key     : ${EnvironmentConfig.versionKey}');
+      print('  target version  : ${partnerAppVersion.isEmpty ? "(EMPTY)" : partnerAppVersion}');
+      print('  download URL    : ${partnerAppDownloadUrl.isEmpty ? "(EMPTY)" : partnerAppDownloadUrl}');
+      print('  admin email     : ${adminMail.isEmpty ? "(EMPTY)" : adminMail}');
+      print('  admin phone     : ${adminPhone.isEmpty ? "(EMPTY)" : adminPhone}');
+      print('  maintenance     : $underMn');
+      print('=======================================================');
 
       String privacyIntro = _remoteConfig.getString('p_policy_brief_intro');
       String privacyGrievance = _remoteConfig.getString('p_policy_grievances');

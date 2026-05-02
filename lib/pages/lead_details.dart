@@ -17,9 +17,9 @@ class LeadDetails extends StatelessWidget {
 
     final (statusColor, statusIcon, statusLabel) = switch (lead.status) {
       'NEW' => (s.leadNew, Icons.fiber_new_rounded, 'NEW'),
-      'ONGOING' => (s.leadOngoing, Icons.sync_rounded, 'ONGOING'),
+      'IN_PROGRESS' => (s.leadOngoing, Icons.sync_rounded, 'IN PROGRESS'),
       'CLOSED' => (s.leadClosed, Icons.check_circle_rounded, 'CLOSED'),
-      'DELETED' => (s.leadDeleted, Icons.delete_outline_rounded, 'DELETED'),
+      'CANCELLED' => (s.leadDeleted, Icons.delete_outline_rounded, 'CANCELLED'),
       _ => (scheme.outline, Icons.help_outline_rounded, lead.status ?? '—'),
     };
 
@@ -61,7 +61,7 @@ class LeadDetails extends StatelessWidget {
                   _InfoRow(
                       icon: Icons.account_balance_wallet_outlined,
                       label: 'Finance',
-                      value: lead.isFinanceInterested ?? '—'),
+                      value: lead.financeInterest ?? '—'),
                 ],
               ),
               const SizedBox(height: 8),
@@ -73,7 +73,9 @@ class LeadDetails extends StatelessWidget {
                     Expanded(
                       child: _EarningsTile(
                         title: 'Expected',
-                        value: lead.expectedEarnings ?? '—',
+                        value: lead.expectedEarnings == null
+                            ? '—'
+                            : '₹${lead.expectedEarnings}',
                         color: s.info,
                       ),
                     ),
@@ -81,7 +83,9 @@ class LeadDetails extends StatelessWidget {
                     Expanded(
                       child: _EarningsTile(
                         title: 'Earned',
-                        value: lead.partnersTake ?? '—',
+                        value: lead.partnersTake == null
+                            ? '—'
+                            : '₹${lead.partnersTake}',
                         color: s.success,
                         emphasize: true,
                       ),
@@ -89,14 +93,14 @@ class LeadDetails extends StatelessWidget {
                   ],
                 ),
               ),
-              if ((lead.noteForPrt ?? '').isNotEmpty) ...[
+              if ((lead.noteVisibleToPartner ?? '').isNotEmpty) ...[
                 const SizedBox(height: 8),
                 _Section(
                   title: 'Note from Asteron',
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Text(lead.noteForPrt!,
+                      child: Text(lead.noteVisibleToPartner!,
                           style: tt.bodyMedium?.copyWith(height: 1.4)),
                     ),
                   ],

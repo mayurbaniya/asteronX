@@ -40,7 +40,6 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    userController.getUserDataFromSF();
 
     _screens = [
       const MyLeads(),
@@ -49,6 +48,15 @@ class HomeScreenState extends State<HomeScreen> {
       AddLeads(onLeadSubmitted: _changeTabToMyLeads),
       const PaymentHistory(),
     ];
+
+    // Defer the SF read until after the first frame: getUserDataFromSF()
+    // toggles `isLoading` synchronously before the first `await`, which
+    // would notify Obx listeners while /home is still being built and
+    // trigger "setState() called during build" via the route Builder.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      userController.getUserDataFromSF();
+    });
   }
 
   @override
