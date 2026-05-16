@@ -23,7 +23,7 @@ enum AppEnvironment {
 /// `_releaseEnvironment` value, so day-to-day `flutter run` always hits TEST.
 class EnvironmentConfig {
   // IMPORTANT: change this for release builds before `flutter build apk`.
-  static const AppEnvironment _releaseEnvironment = AppEnvironment.uat;
+  static const AppEnvironment _releaseEnvironment = AppEnvironment.production;
 
   /// Resolved environment for this build.
   static AppEnvironment get current {
