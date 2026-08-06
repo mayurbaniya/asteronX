@@ -32,7 +32,9 @@ class Validation {
   }
 
   static bool isValidPhone(String phone) {
-    if (!RegExp(r'^(?:\+91|91)?[789]\d{9}$').hasMatch(phone)) {
+    // Indian mobile numbers start with 6-9. The 6-series is in active
+    // allocation, so [789] wrongly rejected real numbers.
+    if (!RegExp(r'^(?:\+91|91)?[6-9]\d{9}$').hasMatch(phone)) {
       return false;
     }
     return true;
